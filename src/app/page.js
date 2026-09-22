@@ -10,6 +10,7 @@ import {
   Coins,
   CreditCard,
   LayoutDashboard,
+  LogOut,
   MapPin,
   Menu,
   MessageCircle,
@@ -85,8 +86,10 @@ export default function Home() {
     [plans, setPlans] = useState(plans0),
     [coins, setCoins] = useState(coins0),
     [modal, setModal] = useState(null),
-    [form, setForm] = useState(blankPlan);
+    [form, setForm] = useState(blankPlan),
+    [profileOpen, setProfileOpen] = useState(false);
   let current = nav.find((x) => x[0] === active)[1];
+  const logout = async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.assign("/login"); };
   const open = (type, item, index) => {
     setModal(type);
     setForm(
@@ -144,13 +147,13 @@ export default function Home() {
               <Bell size={20} />
               <i />
             </button>
-            <div className="admin">
-              <b>A</b>
-              <span>
-                <strong>Admin</strong>
-                <small>Super Admin</small>
-              </span>
-              <ChevronDown size={15} />
+            <div className="profileMenu">
+              <button className="admin" onClick={() => setProfileOpen((value) => !value)} aria-expanded={profileOpen}>
+                <b>A</b>
+                <span><strong>Admin</strong><small>Super Admin</small></span>
+                <ChevronDown size={15} />
+              </button>
+              {profileOpen && <div className="profileDropdown"><div><b>A</b><span><strong>Admin</strong><small>Super Admin</small></span></div><button onClick={logout}><LogOut size={16} />Logout</button></div>}
             </div>
           </div>
         </header>
@@ -187,8 +190,8 @@ function Dashboard() {
       <div className="welcome">
         <div>
           <small>ADMIN DASHBOARD</small>
-          <h1>Welcome back, Admin 👋</h1>
-          <p>Here’s what’s happening with your Milo platform today.</p>
+          <h1>Welcome back, Admin Ã°Å¸â€˜â€¹</h1>
+          <p>HereÃ¢â‚¬â„¢s whatÃ¢â‚¬â„¢s happening with your Milo platform today.</p>
         </div>
         <div>
           <button>
@@ -210,7 +213,7 @@ function Dashboard() {
             </span>
             <p>{title}</p>
             <h2>{value}</h2>
-            <b>↑ {growth}</b>
+            <b>Ã¢â€ â€˜ {growth}</b>
             <small>vs last 30 days</small>
           </article>
         ))}
@@ -229,12 +232,12 @@ function Dashboard() {
               <b>6M</b>
             </div>
           </div>
-          <p>Total revenue from verified payments (₹)</p>
+          <p>Total revenue from verified payments (Ã¢â€šÂ¹)</p>
           <div className="linechart">
-            <span>₹1.5L</span>
-            <span>₹1.0L</span>
-            <span>₹50K</span>
-            <span>₹0</span>
+            <span>Ã¢â€šÂ¹1.5L</span>
+            <span>Ã¢â€šÂ¹1.0L</span>
+            <span>Ã¢â€šÂ¹50K</span>
+            <span>Ã¢â€šÂ¹0</span>
             <svg viewBox="0 0 650 210" preserveAspectRatio="none">
               <defs>
                 <linearGradient id="fill" x1="0" x2="0" y1="0" y2="1">
@@ -255,7 +258,7 @@ function Dashboard() {
               <circle cx="340" cy="78" r="5" fill="#7543ff" />
             </svg>
             <div className="tooltip">
-              <b>₹1,24,860</b>
+              <b>Ã¢â€šÂ¹1,24,860</b>
               <small>Apr 18, 2025</small>
             </div>
           </div>
@@ -311,17 +314,17 @@ function Dashboard() {
 }
 function Activity() {
   let a = [
-    ["👩🏻", "New user registered", "Aanya Sharma", "2 mins ago"],
-    ["🛒", "Subscription purchased", "Rohan Mehta", "5 mins ago"],
-    ["🪙", "Coin purchase", "Kiara Joshi", "12 mins ago"],
-    ["💬", "New chat started", "Arjun Patel", "18 mins ago"],
-    ["📍", "User joined from Nearby", "Meera Singh", "25 mins ago"],
+    ["Ã°Å¸â€˜Â©Ã°Å¸ÂÂ»", "New user registered", "Aanya Sharma", "2 mins ago"],
+    ["Ã°Å¸â€ºâ€™", "Subscription purchased", "Rohan Mehta", "5 mins ago"],
+    ["Ã°Å¸Âªâ„¢", "Coin purchase", "Kiara Joshi", "12 mins ago"],
+    ["Ã°Å¸â€™Â¬", "New chat started", "Arjun Patel", "18 mins ago"],
+    ["Ã°Å¸â€œÂ", "User joined from Nearby", "Meera Singh", "25 mins ago"],
   ];
   return (
     <section className="card activity">
       <div className="cardtitle">
         <h3>Recent Activity</h3>
-        <a>View all →</a>
+        <a>View all Ã¢â€ â€™</a>
       </div>
       {a.map((x) => (
         <div className="activityrow" key={x[1]}>
@@ -341,17 +344,17 @@ function Plans() {
     <section className="card plans">
       <div className="cardtitle">
         <div>
-          ♛<h3>Top Performing Subscription Plans</h3>
+          Ã¢â„¢â€º<h3>Top Performing Subscription Plans</h3>
         </div>
-        <a>View all →</a>
+        <a>View all Ã¢â€ â€™</a>
       </div>
       {[
-        ["Basic Plan", "Basic", "₹499 / month", "1,246 sold", "#8a55f6"],
-        ["Premium Plan", "Premium", "₹999 / month", "892 sold", "#4385fa"],
-        ["Gold Plan", "Gold", "₹1,499 / month", "541 sold", "#ffb62d"],
+        ["Basic Plan", "Basic", "Ã¢â€šÂ¹499 / month", "1,246 sold", "#8a55f6"],
+        ["Premium Plan", "Premium", "Ã¢â€šÂ¹999 / month", "892 sold", "#4385fa"],
+        ["Gold Plan", "Gold", "Ã¢â€šÂ¹1,499 / month", "541 sold", "#ffb62d"],
       ].map((x) => (
         <div className="plan" key={x[0]}>
-          <b style={{ background: x[4] }}>★</b>
+          <b style={{ background: x[4] }}>Ã¢Ëœâ€¦</b>
           <div>
             <strong>
               {x[0]} <i>{x[1]}</i>
@@ -379,10 +382,10 @@ function Plans() {
 }
 function RecentUsers() {
   let users = [
-    ["👩🏻", "Aanya Sharma", "Hindi", "0.4 km"],
-    ["👨🏻", "Rohan Mehta", "Marathi", "0.8 km"],
-    ["🧑🏻", "Kiara Joshi", "Gujarati", "1.2 km"],
-    ["👩🏽", "Arjun Patel", "Hindi", "1.9 km"],
+    ["Ã°Å¸â€˜Â©Ã°Å¸ÂÂ»", "Aanya Sharma", "Hindi", "0.4 km"],
+    ["Ã°Å¸â€˜Â¨Ã°Å¸ÂÂ»", "Rohan Mehta", "Marathi", "0.8 km"],
+    ["Ã°Å¸Â§â€˜Ã°Å¸ÂÂ»", "Kiara Joshi", "Gujarati", "1.2 km"],
+    ["Ã°Å¸â€˜Â©Ã°Å¸ÂÂ½", "Arjun Patel", "Hindi", "1.9 km"],
   ];
   return (
     <section className="card recent">
@@ -391,7 +394,7 @@ function RecentUsers() {
           <Users size={19} />
           <h3>Recent Users</h3>
         </div>
-        <a>View all →</a>
+        <a>View all Ã¢â€ â€™</a>
       </div>
       {users.map((x) => (
         <div className="userrow" key={x[1]}>
@@ -413,7 +416,7 @@ function Cities() {
           <MapPin size={19} />
           <h3>Top Cities</h3>
         </div>
-        <a>View all →</a>
+        <a>View all Ã¢â€ â€™</a>
       </div>
       {[
         ["Pune", "2,845", "18%"],
@@ -424,10 +427,10 @@ function Cities() {
       ].map((x, i) => (
         <div key={x[0]}>
           <b>{i + 1}</b>
-          <span>🏙️</span>
+          <span>Ã°Å¸Ââ„¢Ã¯Â¸Â</span>
           <strong>{x[0]}</strong>
           <em>{x[1]}</em>
-          <i>↑ {x[2]}</i>
+          <i>Ã¢â€ â€˜ {x[2]}</i>
         </div>
       ))}
     </section>
@@ -468,7 +471,7 @@ function Manage({ active, plans, coins, open }) {
               <tr key={r.name}>
                 <td>{r.name}</td>
                 <td>{isPlan ? r.code : r.coins}</td>
-                <td>₹{r.price}</td>
+                <td>Ã¢â€šÂ¹{r.price}</td>
                 <td>
                   <em>{r.status}</em>
                 </td>
@@ -495,13 +498,13 @@ function Modal({ type, form, setForm, save, close }) {
       ? [
           ["name", "Plan name"],
           ["code", "Plan code"],
-          ["price", "Price (₹)"],
+          ["price", "Price (Ã¢â€šÂ¹)"],
           ["duration", "Duration (days)"],
         ]
       : [
           ["name", "Package name"],
           ["coins", "Coins"],
-          ["price", "Price (₹)"],
+          ["price", "Price (Ã¢â€šÂ¹)"],
           ["bonus", "Bonus coins"],
         ];
   return (
