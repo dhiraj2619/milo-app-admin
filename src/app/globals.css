@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
+
 :root {
   --violet: #7545e8;
   --ink: #17213b;
@@ -14,7 +14,7 @@ body {
   background: #f7f8fc;
   color: var(--ink);
   font-family: Poppins, Arial, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
 }
 .app {
   display: flex;
@@ -22,7 +22,7 @@ body {
 }
 aside {
   position: fixed;
-  width: 245px;
+  width: 265px;
   height: 100vh;
   background: linear-gradient(145deg, #182338, #111827);
   color: #dbe4f5;
@@ -104,8 +104,9 @@ nav button.selected {
   font-size: 9px;
 }
 .workspace {
-  margin-left: 245px;
-  width: calc(100% - 245px);
+  /* Keep the dashboard visually separate from the fixed 265px sidebar. */
+  margin-left: 289px;
+  width: calc(100% - 289px);
 }
 header {
   height: 74px;
@@ -749,4 +750,63 @@ td button {
   }
 }
 
-.profileMenu{position:relative}.admin{border:0;background:transparent;cursor:pointer}.profileDropdown{position:absolute;right:0;top:47px;width:190px;background:#fff;border:1px solid #e6eaf1;border-radius:10px;box-shadow:0 12px 30px #1c23421f;padding:10px;z-index:10}.profileDropdown>div{display:flex;align-items:center;gap:9px;padding:5px 5px 11px;border-bottom:1px solid #edf0f5}.profileDropdown>div>b{display:grid;place-items:center;width:31px;height:31px;border-radius:50%;background:#eee9ff;color:#7145e9}.profileDropdown strong,.profileDropdown small{display:block;font-size:11px}.profileDropdown small{color:#7d8aa2;font-size:9px}.profileDropdown>button{margin-top:8px;width:100%;height:34px;border:0;border-radius:6px;background:#fff1f3;color:#d83454;display:flex;align-items:center;gap:8px;padding:0 8px;font:600 11px Poppins;cursor:pointer}
+.profileMenu {
+  position: relative;
+}
+.admin {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.profileDropdown {
+  position: absolute;
+  right: 0;
+  top: 47px;
+  width: 190px;
+  background: #fff;
+  border: 1px solid #e6eaf1;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px #1c23421f;
+  padding: 10px;
+  z-index: 10;
+}
+.profileDropdown > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 5px 5px 11px;
+  border-bottom: 1px solid #edf0f5;
+}
+.profileDropdown > div > b {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  background: #eee9ff;
+  color: #7145e9;
+}
+.profileDropdown strong,
+.profileDropdown small {
+  display: block;
+  font-size: 11px;
+}
+.profileDropdown small {
+  color: #7d8aa2;
+  font-size: 9px;
+}
+.profileDropdown > button {
+  margin-top: 8px;
+  width: 100%;
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: #fff1f3;
+  color: #d83454;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  font: 600 11px Poppins;
+  cursor: pointer;
+}
