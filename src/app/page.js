@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "./redux/hooks";
+import { fetchUsers, blockUser, deleteUser } from "./redux/slices/usersSlice";
 import { createSubscriptionPlan, fetchSubscriptionPlans } from "./redux/slices/subscriptionPlanSlice";
+import { createCoinStore, deleteCoinStore, fetchCoinStores, updateCoinStore } from "./redux/slices/coinPackageSlice";
 import {
   Bell,
   CalendarDays,
@@ -25,6 +27,7 @@ import {
   X,
   Plus,
   Pencil,
+  Trash2,
 } from "lucide-react";
 const nav = [
   ["dashboard", "Dashboard", LayoutDashboard],
@@ -36,22 +39,6 @@ const nav = [
   ["reports", "Reports", ChartNoAxesCombined],
   ["settings", "Settings", Settings],
 ];
-const coins0 = [
-  {
-    name: "Starter Pack",
-    coins: "70",
-    price: "29",
-    bonus: "0",
-    status: "Active",
-  },
-  {
-    name: "Popular Pack",
-    coins: "190",
-    price: "59",
-    bonus: "20",
-    status: "Active",
-  },
-];
 const PLAN_FEATURES = [
   ["dailyBonusCoins", "Daily bonus coins"], ["monthlyBonusCoins", "Monthly bonus coins"], ["premiumBadge", "Premium badge"], ["extraCallRequests", "Extra call requests"], ["priorityConnect", "Priority Connect"], ["nearbyUsers", "Nearby users"], ["languageFiltersBasic", "Language filters (Basic)"], ["languageFiltersAdvanced", "Language filters (Advanced)"], ["profileVisibilityBoost", "Profile visibility boost"], ["profilePriority", "Profile priority"], ["dailyProfileBoost", "Daily profile boost"], ["fasterConnectMatching", "Faster Connect matching"], ["higherCallChatPriority", "Higher call/chat priority"], ["exclusiveAvatarStyles", "Exclusive avatar styles"],
 ];
@@ -61,42 +48,43 @@ const blankPlan = {
   dailyBonusCoins: "0", monthlyBonusCoins: "0",
   features: Object.fromEntries(PLAN_FEATURES.map(([key]) => [key, false])),
 };
-const blankCoin = { name: "", coins: "", price: "", bonus: "0", status: "Active" };export default function Home() {
-  const [active, setActive] = useState("dashboard"),
+const blankCoin = { coins: "", discountPrice: "", originalPrice: "", isPopular: false, status: "Active", sortOrder: "0" };export default function Home() {
+  const [active, setActive] = useState(() => localStorage.getItem("milo_admin_tab") || "dashboard"),
     [submitError, setSubmitError] = useState(""),
-    [coins, setCoins] = useState(coins0),
+
     [modal, setModal] = useState(null),
     [form, setForm] = useState(blankPlan),
     [profileOpen, setProfileOpen] = useState(false);
   let current = nav.find((x) => x[0] === active)[1];
   const dispatch = useAppDispatch();
   const { items: remotePlans, loading: plansLoading, saving: planSaving } = useAppSelector((state) => state.subscriptionPlans);
+  const { items: users, loading: usersLoading } = useAppSelector((state) => state.users);
+  const { items: remoteCoins, loading: coinsLoading, saving: coinSaving } = useAppSelector((state) => state.coinPackages);
   useEffect(() => {
     if (active === "plans") dispatch(fetchSubscriptionPlans());
+    if (active === "coins") dispatch(fetchCoinStores());
+    if (active === "users") dispatch(fetchUsers());
   }, [active, dispatch]);
   const logout = async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.assign("/login"); };
-  const open = (type, item, index) => {
+  const removeCoin = async (row) => {
+    const id = row._id ?? row.id;
+    if (!id || !window.confirm("Delete this Coin Store product?")) return;
+    try { await dispatch(deleteCoinStore(id)).unwrap(); } catch (error) { setSubmitError(error.message || "Unable to delete Coin Store product."); }
+  };
+  const open = (type, item) => {
     setModal(type);
-    if (type === "plans" && item) {
-      setForm({ ...blankPlan, ...item, index, duration: String(item.durationDays ?? item.duration ?? 30), price: String(item.price?.amount ?? item.price ?? ""), status: item.isActive === false ? "Inactive" : "Active", dailyBonusCoins: String(item.bonusCoins?.daily ?? 0), monthlyBonusCoins: String(item.bonusCoins?.monthly ?? 0), features: { ...blankPlan.features, ...item.features } });
+    if (type === "coins" && item) {
+      setForm({ ...blankCoin, ...item, coins: String(item.coins), originalPrice: String(item.originalPrice), discountPrice: String(item.discountPrice), sortOrder: String(item.sortOrder ?? 0), status: item.isActive === false ? "Inactive" : "Active" });
       return;
     }
-    setForm(item ? { ...item, index } : type === "plans" ? { ...blankPlan, features: { ...blankPlan.features } } : blankCoin);
+    if (type === "plans" && item) { setForm({ ...blankPlan, ...item, duration: String(item.durationDays ?? 30), price: String(item.price?.amount ?? ""), status: item.isActive === false ? "Inactive" : "Active", features: { ...blankPlan.features, ...item.features } }); return; }
+    setForm(type === "plans" ? { ...blankPlan, features: { ...blankPlan.features } } : { ...blankCoin });
   };
   const save = async (e) => {
-    e.preventDefault();
-    setSubmitError("");
-    if (modal === "plans") {
-      try {
-        await dispatch(createSubscriptionPlan({ name: form.name, code: form.code, planType: form.planType, shortDescription: form.shortDescription, detailedDescription: form.detailedDescription, durationDays: Number(form.duration), price: { amount: Number(form.price), currency: "INR" }, bonusCoins: { daily: Number(form.dailyBonusCoins), monthly: Number(form.monthlyBonusCoins) }, features: form.features, sortOrder: Number(form.sortOrder), isPopular: form.isPopular, isActive: form.status === "Active" })).unwrap();
-        setModal(null);
-      } catch (error) { setSubmitError(error.message || "Unable to add subscription plan."); }
-      return;
-    }
-    setCoins((rows) => form.index === undefined ? [...rows, form] : rows.map((row, i) => i === form.index ? form : row));
-    setModal(null);
-  };
-  return (
+    e.preventDefault(); setSubmitError("");
+    if (modal === "plans") { try { await dispatch(createSubscriptionPlan({ name: form.name, code: form.code, planType: form.planType, shortDescription: form.shortDescription, detailedDescription: form.detailedDescription, durationDays: Number(form.duration), price: { amount: Number(form.price), currency: "INR" }, bonusCoins: { daily: Number(form.dailyBonusCoins), monthly: Number(form.monthlyBonusCoins) }, features: form.features, sortOrder: Number(form.sortOrder), isPopular: form.isPopular, isActive: form.status === "Active" })).unwrap(); setModal(null); } catch (error) { setSubmitError(error.message || "Unable to save plan."); } return; }
+    try { const payload={ coins:Number(form.coins), originalPrice:Number(form.originalPrice), discountPrice:Number(form.discountPrice), sortOrder:Number(form.sortOrder), isPopular:form.isPopular, isActive:form.status === "Active" }; const id=form._id ?? form.id; await dispatch(id ? updateCoinStore({id,payload}) : createCoinStore(payload)).unwrap(); setModal(null); } catch(error) { setSubmitError(error.message || "Unable to save Coin Store product."); }
+  };  return (
     <main className="app">
       <aside>
         <div className="logo">
@@ -107,7 +95,7 @@ const blankCoin = { name: "", coins: "", price: "", bonus: "0", status: "Active"
           {nav.map(([key, label, Icon]) => (
             <button
               className={active === key ? "selected" : ""}
-              onClick={() => setActive(key)}
+              onClick={() => { setActive(key); localStorage.setItem("milo_admin_tab", key); }}
               key={key}
             >
               <Icon size={20} />
@@ -150,8 +138,10 @@ const blankCoin = { name: "", coins: "", price: "", bonus: "0", status: "Active"
         <div className="content">
           {active === "dashboard" ? (
             <Dashboard />
+          ) : active === "users" ? (
+            <UsersTable users={users} loading={usersLoading} dispatch={dispatch} />
           ) : (
-            <Manage active={active} plans={remotePlans} coins={coins} open={open} loading={plansLoading} />
+            <Manage active={active} plans={remotePlans} coins={remoteCoins} open={open} removeCoin={removeCoin} loading={active === "plans" ? plansLoading : coinsLoading} />
           )}
         </div>
       </section>
@@ -162,7 +152,7 @@ const blankCoin = { name: "", coins: "", price: "", bonus: "0", status: "Active"
           setForm={setForm}
           save={save}
           close={() => { setSubmitError(""); setModal(null); }}
-          saving={planSaving}
+          saving={modal === "coins" ? coinSaving : planSaving}
           error={submitError}
         />
       )}
@@ -183,7 +173,7 @@ function Dashboard() {
         <div>
           <small>ADMIN DASHBOARD</small>
           <h1>Welcome back, Admin</h1>
-          <p>Here's what's happening with your Milo platform today.</p>
+          <p>Here&apos;s what&apos;s happening with your Milo platform today.</p>
         </div>
         <div>
           <button>
@@ -422,63 +412,14 @@ function Cities() {
     </section>
   );
 }
-function Manage({ active, plans, coins, open, loading }) {
-  let isPlan = active === "plans",
-    isCoin = active === "coins",
-    rows = isPlan ? plans : isCoin ? coins : [];
-  let label = isPlan ? "Subscription Plans" : isCoin ? "Coin Store" : active;
-  return (
-    <section className="card manage">
-      <div className="cardtitle">
-        <div>
-          <h2>{label}</h2>
-          <p>Manage your Milo platform data.</p>
-        </div>
-        {(isPlan || isCoin) && (
-          <button onClick={() => open(active)}>
-            <Plus size={16} />
-            Add {isPlan ? "plan" : "package"}
-          </button>
-        )}
-      </div>
-      {loading && isPlan ? <div className="empty">Loading subscription plans...</div> : rows.length ? (
-        <table>
-          <thead>
-            <tr>
-              <th>NAME</th>
-              <th>{isPlan ? "CODE" : "COINS"}</th>
-              <th>PRICE</th>
-              <th>STATUS</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={r.name}>
-                <td>{r.name}</td>
-                <td>{isPlan ? r.code : r.coins}</td>
-                <td>{isPlan ? `Rs. ${r.price?.amount ?? r.price}` : r.price}</td>
-                <td>
-                  <em>{isPlan ? (r.isActive ? "Active" : "Inactive") : r.status}</em>
-                </td>
-                <td>
-                  <button onClick={() => open(active, r, i)}>
-                    <Pencil size={15} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <div className="empty">
-          Choose Subscription Plans or Coin Store to manage products.
-        </div>
-      )}
-    </section>
-  );
-}
-function Modal({ type, form, setForm, save, close, saving, error }) {
+function UsersTable({users,loading,dispatch}){const act=async(t,id)=>{if(window.confirm(`${t} this user?`)){await dispatch(t==="Block"?blockUser(id):deleteUser(id));dispatch(fetchUsers())}};return <section className="card manage"><div className="cardtitle"><div><h2>Users</h2><p>Registered Milo users.</p></div></div>{loading?<div className="empty">Loading users...</div>:users.length?<div className="tablewrap"><table><thead><tr><th>USER</th><th>PHONE</th><th>GENDER</th><th>LANGUAGES</th><th>STATUS</th><th/></tr></thead><tbody>{users.map(u=><tr key={u._id}><td><div className="flex items-center gap-3">{u.photoUrl?<img className="h-9 w-9 rounded-full object-cover" src={u.photoUrl} alt=""/>:<b className="grid h-9 w-9 place-items-center rounded-full bg-violet-100 text-violet-700">{(u.nickname||"U")[0].toUpperCase()}</b>}<span>{u.nickname||"Unnamed user"}</span></div></td><td>{u.phone || u.phoneNumber || "—"}</td><td>{u.gender||"—"}</td><td>{u.languages?.join(", ")||"—"}</td><td><em>{u.status}</em></td><td><button onClick={()=>act("Block",u._id)}>Block</button><button className="ml-3 text-rose-500" onClick={()=>act("Delete",u._id)}>Delete</button></td></tr>)}</tbody></table></div>:<div className="empty">No data available.</div>}</section>;}function Manage({ active, plans, coins, open, removeCoin, loading }) {
+  const isPlan = active === "plans";
+  const isCoin = active === "coins";
+  const rows = isPlan ? (plans || []) : isCoin ? (coins || []) : [];
+  const label = isPlan ? "Subscription Plans" : isCoin ? "Coin Store" : active;
+  return <section className="card manage"><div className="cardtitle"><div><h2>{label}</h2><p>Manage your Milo platform data.</p></div>{(isPlan || isCoin) && <button onClick={() => open(active)}><Plus size={16}/>Add {isPlan ? "plan" : "product"}</button>}</div>{loading ? <div className="empty">Loading data...</div> : rows.length ? <div className="tablewrap"><table><thead><tr>{isCoin ? <><th>COINS</th><th>ORIGINAL PRICE</th><th>DISCOUNT PRICE</th><th>PRICE OFF</th></> : <><th>NAME</th><th>CODE</th><th>PRICE</th></>}<th>STATUS</th><th/></tr></thead><tbody>{rows.map((row,index)=><tr key={row._id ?? row.id ?? index}>{isCoin ? <><td>{row.coins} {row.isPopular && <span className="ml-2 rounded-full bg-violet-100 px-2 py-1 text-xs text-violet-700">Popular</span>}</td><td>Rs. {row.originalPrice}</td><td>Rs. {row.discountPrice}</td><td>{row.priceOff ?? 0}%</td></> : <><td>{row.name}</td><td>{row.code}</td><td>Rs. {row.price?.amount ?? row.price}</td></>}<td><em>{row.isActive === false ? "Inactive" : "Active"}</em></td><td><div className="flex gap-3"><button onClick={() => open(active,row,index)}><Pencil size={15}/></button>{isCoin && <button onClick={() => removeCoin(row)} className="text-rose-500"><Trash2 size={15}/></button>}</div></td></tr>)}</tbody></table></div> : <div className="empty">No data available.</div>}</section>;
+}function Modal({ type, form, setForm, save, close, saving, error }) {
+  if (type === "coins") return <CoinModal form={form} setForm={setForm} save={save} close={close} saving={saving} error={error} />;
   if (type !== "plans") return null;
   const update = (key, value) => setForm({ ...form, [key]: value });
   const toggleFeature = (key) => setForm({ ...form, features: { ...form.features, [key]: !form.features[key] } });
@@ -500,6 +441,9 @@ function Modal({ type, form, setForm, save, close, saving, error }) {
     </div>
   );
 }
-function Input({ label, hint, value, onChange, placeholder, type = "text" }) { return <label className="block text-sm font-semibold text-slate-800">{label}<input required type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="mt-2 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm font-normal outline-none placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"/>{hint && <small className="mt-1 block text-xs font-normal text-slate-500">{hint}</small>}</label>; }
+function CoinModal({ form, setForm, save, close, saving, error }) {
+ const set = (key, value) => setForm({ ...form, [key]: value });
+ return <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/60 p-4" onMouseDown={close}><form onSubmit={save} onMouseDown={e=>e.stopPropagation()} className="w-[min(620px,96vw)] rounded-2xl bg-white p-7 shadow-2xl"><div className="mb-5 flex justify-between"><div><h2 className="text-2xl font-bold">{form._id ? "Edit Coin Store Product" : "Add Coin Store Product"}</h2><p className="mt-1 text-sm text-slate-500">Manage your Coin Store product.</p></div><button type="button" onClick={close}><X size={24}/></button></div><div className="grid gap-4 sm:grid-cols-2"><Input label="Coins *" type="number" value={form.coins} onChange={v=>set("coins",v)}/><Input label="Sort order" type="number" value={form.sortOrder} onChange={v=>set("sortOrder",v)}/><Input label="Original price (Rs.) *" type="number" value={form.originalPrice} onChange={v=>set("originalPrice",v)}/><Input label="Discount price (Rs.) *" type="number" value={form.discountPrice} onChange={v=>set("discountPrice",v)}/><Select label="Status" value={form.status} onChange={v=>set("status",v)} options={[["Active","Active"],["Inactive","Inactive"]]}/><label className="block text-sm font-semibold">Is popular?<span className="mt-3 flex gap-2"><input type="checkbox" checked={form.isPopular} onChange={e=>set("isPopular",e.target.checked)}/> Show Popular badge</span></label></div>{error&&<p className="mt-4 text-rose-600">{error}</p>}<div className="mt-6 flex justify-end gap-3"><button type="button" onClick={close}>Cancel</button><button className="rounded-lg bg-violet-600 px-5 py-2 text-white" disabled={saving}>{saving?"Saving...":form._id?"Save Changes":"Add Product"}</button></div></form></div>;
+}function Input({ label, hint, value, onChange, placeholder, type = "text" }) { return <label className="block text-sm font-semibold text-slate-800">{label}<input required type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="mt-2 h-10 w-full rounded-lg border border-slate-300 px-3 text-sm font-normal outline-none placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-100"/>{hint && <small className="mt-1 block text-xs font-normal text-slate-500">{hint}</small>}</label>; }
 function Select({ label, value, onChange, options }) { return <label className="block text-sm font-semibold text-slate-800">{label}<select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100">{options.map(([key,text]) => <option key={key} value={key}>{text}</option>)}</select></label>; }
 function TextArea({ label, value, onChange, maxLength }) { return <label className="block text-sm font-semibold text-slate-800">{label}<textarea value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} className="mt-2 h-20 w-full resize-y rounded-lg border border-slate-300 p-3 text-sm font-normal outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"/><small className="block text-right text-xs font-normal text-slate-500">{value.length}/{maxLength}</small></label>; }

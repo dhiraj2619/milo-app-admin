@@ -1,5 +1,1 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { apiRequest } from "@/app/config/api";
-export const fetchUsers = createAsyncThunk("users/fetch", () => apiRequest("/admin/users"));
-const slice = createSlice({name:"users",initialState:{items:[],loading:false,error:null},reducers:{},extraReducers:b=>b.addCase(fetchUsers.pending,s=>{s.loading=true;s.error=null}).addCase(fetchUsers.fulfilled,(s,a)=>{s.loading=false;s.items=a.payload.data||a.payload}).addCase(fetchUsers.rejected,(s,a)=>{s.loading=false;s.error=a.error.message})});
-export default slice.reducer;
+import {createAsyncThunk,createSlice} from "@reduxjs/toolkit";import {apiRequest} from "@/app/config/api";export const fetchUsers=createAsyncThunk("users/fetch",()=>apiRequest("/users/admin"));export const blockUser=createAsyncThunk("users/block",id=>apiRequest(`/users/admin/${id}/block`,{method:"PATCH"}));export const deleteUser=createAsyncThunk("users/delete",id=>apiRequest(`/users/admin/${id}`,{method:"DELETE"}).then(()=>id));const s=createSlice({name:"users",initialState:{items:[],loading:false},reducers:{},extraReducers:b=>b.addCase(fetchUsers.pending,x=>{x.loading=true}).addCase(fetchUsers.fulfilled,(x,a)=>{x.loading=false;x.items=a.payload.data?.users||[]}).addCase(deleteUser.fulfilled,(x,a)=>{x.items=x.items.filter(u=>u._id!==a.payload)})});export default s.reducer;

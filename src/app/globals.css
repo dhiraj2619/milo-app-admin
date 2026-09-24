@@ -593,6 +593,9 @@ header {
   gap: 7px;
   font: 11px Poppins;
 }
+.tablewrap {
+  overflow-x: auto;
+}
 table {
   width: 100%;
   border-collapse: collapse;
@@ -627,6 +630,25 @@ td button {
   text-align: center;
   color: #7e8ca4;
   padding: 100px;
+}
+.nodata {
+  min-height: 290px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.nodata svg {
+  color: #7447e8;
+  margin-bottom: 3px;
+}
+.nodata strong {
+  color: #17213b;
+  font-size: 15px;
+}
+.nodata span {
+  font-size: 11px;
 }
 .overlay {
   position: fixed;
